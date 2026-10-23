@@ -80,6 +80,7 @@ export function useTouchEffects() {
 
       // card tilt + spotlight
       const tilt = (e) => {
+        if (e.pointerType === "touch") return; // no tilt jitter while scrolling on phones
         const c = e.target.closest?.(TILT_SEL);
         if (!c) return;
         const r = c.getBoundingClientRect();

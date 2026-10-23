@@ -21,12 +21,31 @@ function Nav() {
       ? document.documentElement.dataset.theme === "dark"
       : matchMedia("(prefers-color-scheme: dark)").matches;
   const [dark, setDark] = useState(isDark);
+  const [open, setOpen] = useState(false);
+  const navRef = useRef(null);
   const toggle = () => {
     document.documentElement.dataset.theme = dark ? "light" : "dark";
     setDark(!dark);
   };
+
+  // mobile menu: close on outside tap, Escape, or when resized back to desktop
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e) => { if (navRef.current && !navRef.current.contains(e.target)) setOpen(false); };
+    const onKey = (e) => { if (e.key === "Escape") setOpen(false); };
+    const onResize = () => { if (innerWidth > 820) setOpen(false); };
+    document.addEventListener("pointerdown", onDown);
+    document.addEventListener("keydown", onKey);
+    window.addEventListener("resize", onResize);
+    return () => {
+      document.removeEventListener("pointerdown", onDown);
+      document.removeEventListener("keydown", onKey);
+      window.removeEventListener("resize", onResize);
+    };
+  }, [open]);
+
   return (
-    <nav>
+    <nav ref={navRef}>
       <div className="logo">
         <i>{profile.initials}</i>
         <div>
@@ -34,16 +53,27 @@ function Nav() {
           <small>PORTFOLIO</small>
         </div>
       </div>
-      <ul>
+      <ul id="nav-links" className={open ? "open" : ""}>
         {sections.map((s) => (
           <li key={s}>
-            <a href={`#${s.toLowerCase()}`}>{s}</a>
+            <a href={`#${s.toLowerCase()}`} onClick={() => setOpen(false)}>{s}</a>
           </li>
         ))}
       </ul>
-      <button id="theme" onClick={toggle} aria-label="Toggle theme">
-        {dark ? "☀" : "☾"}
-      </button>
+      <div className="nav-r">
+        <button id="theme" onClick={toggle} aria-label="Toggle theme">
+          {dark ? "☀" : "☾"}
+        </button>
+        <button
+          className={`menu ${open ? "x" : ""}`}
+          onClick={() => setOpen((o) => !o)}
+          aria-label={open ? "Close menu" : "Open menu"}
+          aria-expanded={open}
+          aria-controls="nav-links"
+        >
+          <span /><span /><span />
+        </button>
+      </div>
     </nav>
   );
 }
